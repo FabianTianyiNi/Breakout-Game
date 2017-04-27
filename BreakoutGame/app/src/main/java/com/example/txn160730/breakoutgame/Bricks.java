@@ -15,6 +15,8 @@ public class Bricks {
 
     public Bricks(int row, int column, int width, int height){
         visibility = true;
+        this.width = width;
+        this.height = height;
         padding = 1;
         rectF = new RectF(column * width + padding,
                 row * height + padding,
