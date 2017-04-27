@@ -14,14 +14,16 @@ public class Paddle {
     private float right;
     private float top;
     private float bottom;
-    private float centerX;
-    private float centerY;
-    private int movestate;
+    public float x;
+    public float y;
+    private int moveState;
+    private float movingSpeed;
 
     public final int LEFT_BOUNCE = 0;
     public final int RIGHT_BOUNCE = 1;
     public final int STOPPED = 2;
 
+    //定义paddle移动方向
     public final int MOVE_STOP = 0;
     public final int MOVE_LEFT = 1;
     public final int MOVE_RIGHT = 2;
@@ -38,36 +40,53 @@ public class Paddle {
         right = left + width;
         top = screenY - height;
         bottom = screenY;
-        centerX = right - width / 2;
-        centerY = bottom - height / 2;
+        x = (screenX - width)/2;
+        y = screenY - height;
+        movingSpeed = 200;
         rectF = new RectF(left, top, right, bottom);
-        //定义paddle移动方向
-
-
     }
 
     public RectF getRectF(){
         return this.rectF;
     }
-//    public void reset(int x, int y){
-//        rectF.left = (x - width) / 2;
-//        rectF.top = y - 20;
-//        rectF.right = (x - width) / 2 + width;
-//        rectF.bottom = y - 20 - height;
-//    }
+    public void reset(float screenX, float screenY){
+        this.height = 20;
+        rectF.left = (screenX - width)/2;
+        rectF.top = screenY - height;
+        rectF.right = left + width;
+        rectF.bottom = screenY;
+//        rectF = new RectF(left, top, right, bottom);
+    }
     public void setPaddleMovementState(int state){
-        movingstate = state;
+        moveState = state;
     }
 
     public void updateAndStartToBounce(long dps){
-        if(movingstate == LEFT_BOUNCE){
+        if(moveState == LEFT_BOUNCE){
 
         }
     }
 
     public void update(long dps){
-        if(this.movestate == MOVE_LEFT){
-            
+        if(this.moveState == MOVE_LEFT){
+            x = x - movingSpeed/dps;
         }
+        else if(this.moveState == MOVE_RIGHT){
+            x = x + movingSpeed/dps;
+        }
+        rectF.left = x;
+        rectF.right = x + this.width;
+    }
+    public float getX(){
+        return this.x;
+    }
+    public void setX(float x){
+        this.x = x;
+    }
+    public float getY(){
+        return this.y;
+    }
+    public float getWidth(){
+        return width;
     }
 }

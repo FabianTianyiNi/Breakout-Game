@@ -9,7 +9,7 @@ import java.util.Random;
  */
 
 public class Ball {
-    //private RectF rectF;
+    private RectF rectF;
     private float ballHeight = 20;
     private float ballWidth = 20;
     public float left;
@@ -21,12 +21,12 @@ public class Ball {
     private float x, y;
     private int radius = 10;
 
-    public Ball(int screenX, int screenY){
+    public Ball(float screenX, float screenY){
         this.left = (screenX-ballWidth)/2;
         this.top = screenY - 20 - ballHeight;
         this.right = left + ballWidth;
         this.bottom = screenY - 20;
-        //rectF = new RectF(left, top, right, bottom);
+        rectF = new RectF(left, top, right, bottom);
         xVelocity = 200;
         yVelocity = -400;
         this.x = (left + right) / 2;
@@ -43,10 +43,10 @@ public class Ball {
     public void reverseSpeedY(){
         yVelocity = -yVelocity;
     }
-    public void reset(int x, int y){
+    public void reset(float x, float y){
         left = (x - ballWidth) / 2;
         top = y - 20 - ballHeight;
-        right = (x - ballWidth)/2+ballWidth;
+        right = left + ballWidth;
         bottom = y-20;
         this.x = (left + right) / 2;
         this.y = (bottom + top) / 2;
@@ -73,5 +73,13 @@ public class Ball {
         this.x = this.x + (xVelocity/fps);
         this.y = this.y + (yVelocity/fps);
     }
+    public void clearObstacleY(float y){
+        rectF.bottom = y;
+        rectF.top = y - ballHeight;
+    }
 
+    public void clearObstacleX(float x) {
+        rectF.left = x;
+        rectF.right = x + ballWidth;
+    }
 }

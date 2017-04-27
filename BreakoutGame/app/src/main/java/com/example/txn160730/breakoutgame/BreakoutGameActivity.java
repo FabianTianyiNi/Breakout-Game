@@ -32,9 +32,9 @@ public class BreakoutGameActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(new BreakoutGameView(this));
     }
-    class BreakoutGameView extends SurfaceView implements Runnable, SurfaceHolder.Callback, SensorEventListener{
+    class BreakoutGameView extends SurfaceView implements Runnable, SurfaceHolder.Callback {
         Thread thread;
-        boolean paused = false;
+        boolean paused = true;
         volatile boolean isPlaying = true;
         SurfaceHolder surfaceHolder;  // 用于控制surfaceview
         Canvas canvas;//声明画布
@@ -56,10 +56,11 @@ public class BreakoutGameActivity extends Activity {
         private float sensorAxisX;
         private float sensorAxisY;
         private float sensorAxisZ;
-//        float paddleMiddle;
+        //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
-        public BreakoutGameView(Context context){
+
+        public BreakoutGameView(Context context) {
             super(context);
             surfaceHolder = getHolder();
             surfaceHolder.addCallback(this);
@@ -75,7 +76,6 @@ public class BreakoutGameActivity extends Activity {
             ball = new Ball(screenX, screenY);
             sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
             sensor = sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            sensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
             paddlePosXForLeft = paddle.getRectF().left;
             paddlePosXForRight = paddle.getRectF().right;
 //            paddleMiddle = (paddle.getRectF().left + paddle.getRectF().right) / 2;
@@ -84,14 +84,15 @@ public class BreakoutGameActivity extends Activity {
             createSurfaceAndRestart(); //game start
 
         }
-        public void createSurfaceAndRestart(){
+
+        public void createSurfaceAndRestart() {
             //ball reset
             ball.reset(screenX, screenY);
             //paddle reset
             //paddle.reset(screenX, screenY);
             //set up the bricks
             numBricks = 0;
-            for(int column = 0; column < 8; column++) {
+            for (int column = 0; column < 8; column++) {
                 for (int row = 0; row < 3; row++) {
                     bricks[numBricks] = new Bricks(row, column, brickWidth, brickHeight);
                     //bricks.add(new Bricks(row, column, brickWidth,brickHeight));
@@ -100,58 +101,62 @@ public class BreakoutGameActivity extends Activity {
             }
             //live and score reset
         }
-        public void update(){
+
+        public void update() {
+            sensorMgr.registerListener(lsn, sensor, SensorManager.SENSOR_DELAY_GAME);
             //update the ball status
             ball.update(fps);
             paddle.update(fps);
             //check if the ball collide with the bricks
-            for(int i = 0; i<numBricks; i++){
-                if(bricks[i].getVisibility()){
-                    if(bricks[i].getRectF().intersect(ball.getcx()-ball.getRadius(),ball.getcy()-ball.getRadius(),
-                            ball.getcx() + ball.getRadius(), ball.getcy()+ball.getRadius())){
+            for (int i = 0; i < numBricks; i++) {
+                if (bricks[i].getVisibility()) {
+                    if (bricks[i].getRectF().intersect(ball.getcx() - ball.getRadius(), ball.getcy() - ball.getRadius(),
+                            ball.getcx() + ball.getRadius(), ball.getcy() + ball.getRadius())) {
                         bricks[i].setVisibility();
                         ball.reverseSpeedY();
                     }
                 }
             }
             //check if the ball collide with the paddle
-            if(intersect(ball, paddle.getRectF())){
+            if (paddle.getRectF().intersect(ball.getcx() - ball.getRadius(), ball.getcy() - ball.getRadius(),
+                    ball.getcx() + ball.getRadius(), ball.getcy() + ball.getRadius())) {
                 ball.setxVelocity();
                 ball.reverseSpeedY();
+                ball.clearObstacleY(paddle.getRectF().top - 2);
             }
 
             //check if the ball hit on the right side of the wall
-            if(ball.getcx() >= screenX){
+            if (ball.getcx() >= screenX) {
                 ball.reverseSpeedX();
             }
             //check if the ball hit on the top of the screen
-            if(ball.getcy() <= 0){
+            if (ball.getcy() <= 0) {
                 ball.reverseSpeedY();
             }
             //check if the ball hit on the left side
-            if(ball.getcx() <= 0){
+            if (ball.getcx() <= 0) {
                 ball.reverseSpeedX();
             }
             //check if the ball hit on the bottom of the screen
-            if(ball.getcy() >= screenY){
-                ball.reverseSpeedY();
-                Intent intent = new Intent();
+            if (ball.getcy() >= screenY) {
+                ball.clearObstacleY(screenY - 2);
+                //Intent intent = new Intent();
 
             }
 
         }
 
 
-
-        public boolean intersect(Ball ball, RectF rectF){
-            if(rectF.top - ball.getcy() == ball.getRadius()) return true;
-            else if(ball.getcy() - rectF.bottom == ball.getRadius()) return true;
-            else if(rectF.left-ball.getcx() == ball.getRadius()) return true;
-            else if(ball.getcx() - rectF.right == ball.getRadius()) return true;
+        public boolean intersect(Ball ball, RectF rectF) {
+            if (rectF.top - ball.getcy() == ball.getRadius()) return true;
+            else if (ball.getcy() - rectF.bottom == ball.getRadius()) return true;
+            else if (rectF.left - ball.getcx() == ball.getRadius()) return true;
+            else if (ball.getcx() - rectF.right == ball.getRadius()) return true;
             return false;
         }
+
         @Override
-        public void surfaceCreated(SurfaceHolder surfaceHolder){
+        public void surfaceCreated(SurfaceHolder surfaceHolder) {
             thread = new Thread(this);
             isPlaying = true;
             thread.start();
@@ -169,93 +174,102 @@ public class BreakoutGameActivity extends Activity {
 
         @Override
         public void run() {
-            while(isPlaying){
+            while (isPlaying) {
                 long startFrameTime = System.currentTimeMillis();
                 draw();
                 timeThisFrame = System.currentTimeMillis() - startFrameTime;
-                if(timeThisFrame >= 1){
-                    fps = 1000/timeThisFrame;
+                if (timeThisFrame >= 1) {
+                    fps = 1000 / timeThisFrame;
                 }
-                if(!paused){
+                if (!paused) {
                     update();
+
                 }
             }
         }
-        public void pause(){
+        public void pause() {
             isPlaying = false;
-            while(true){
+            while (true) {
                 try {
                     thread.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-
         }
-        public void resume(){
+        public void resume() {
             isPlaying = true;
             thread = new Thread(this);
             thread.start();
         }
 
 
-        public void draw(){
-            if(surfaceHolder.getSurface().isValid()){
+        public void draw() {
+            if (surfaceHolder.getSurface().isValid()) {
                 canvas = surfaceHolder.lockCanvas();
-                canvas.drawColor(Color.argb(255,26,128,182));
-                paint.setColor(Color.argb(255,255,255,255));
+                canvas.drawColor(Color.argb(255, 26, 128, 182));
+                paint.setColor(Color.argb(255, 255, 255, 255));
                 canvas.drawRect(paddle.getRectF(), paint);
                 //canvas.drawRect(ball.getRectF(), paint);
-                canvas.drawCircle(ball.getcx(),ball.getcy(), 10,paint);
-                paint.setColor(Color.argb(255,255,106,106));
-                for(int i = 0; i < numBricks; i++){
-                    if(bricks[i].getVisibility()){
+                canvas.drawCircle(ball.getcx(), ball.getcy(), 10, paint);
+                paint.setColor(Color.argb(255, 255, 106, 106));
+                for (int i = 0; i < numBricks; i++) {
+                    if (bricks[i].getVisibility()) {
                         canvas.drawRect(bricks[i].getRectF(), paint);
                     }
                 }
                 surfaceHolder.unlockCanvasAndPost(canvas);
             }
         }
+
+        final SensorEventListener lsn = new SensorEventListener(){
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                //更新重力加速度传感器坐标
+                sensorAxisX = event.values[0];
+                sensorAxisY = event.values[1];
+                //sensorAxisZ = event.values[SensorManager.AXIS_Z];
+                //每次移动迫使paddle移动 注意：paddle只能水平移动
+                paddlePosXForLeft += sensorAxisX * 2;
+                paddlePosXForRight += sensorAxisX * 2;
+                //定义paddle移动方向
+                if (sensorAxisX < 0) {//向右移动
+                    paddle.setPaddleMovementState(paddle.MOVE_RIGHT);
+                    paddle.update(fps);
+                } else if (sensorAxisX > 0) { //向左移动
+                    paddle.setPaddleMovementState(paddle.MOVE_LEFT);
+                    paddle.update(fps);
+                } else { //不动
+                    paddle.setPaddleMovementState(paddle.MOVE_STOP);
+                    paddle.update(fps);
+                }
+                //检测paddle有没有越界，先是左边界，然后是右边界
+                if (paddle.getX() <= 0) {
+                    paddle.x = 0;
+                } else if ((paddle.getX() + paddle.getWidth()) >= screenX) {
+                    paddle.x = screenX-paddle.getWidth();
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+            }
+        };
+
         @Override
         public boolean onTouchEvent(MotionEvent motionEvent){
             switch(motionEvent.getAction() & MotionEvent.ACTION_MASK){
                 case MotionEvent.ACTION_DOWN:
-                    ball.setxVelocity();
-//                    if(motionEvent.getX() > screenX / 2){
-//                        paddle.setPaddleMovementState(paddle.RIGHT_BOUNCE);
-//                    }else{
-//                        paddle.setPaddleMovementState(paddle.LEFT_BOUNCE);
-//                    }
+                    createSurfaceAndRestart();
                     break;
                 case MotionEvent.ACTION_UP:
-                    paddle.setPaddleMovementState(paddle.STOPPED);
+                    paused = false;
+                    break;
             }
             return true;
         }
 
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            //更新重力加速度传感器坐标
-            sensorAxisX = event.values[SensorManager.AXIS_X];
-            sensorAxisY = event.values[SensorManager.AXIS_Y];
-            sensorAxisZ = event.values[SensorManager.AXIS_Z];
-            //每次移动迫使paddle移动 注意：paddle只能水平移动
-            paddlePosXForLeft += sensorAxisX*2;
-            paddlePosXForRight += sensorAxisX*2;
-            //检测paddle有没有越界，先是左边界，然后是右边界
-            if(paddlePosXForLeft <= 0) {
-                paddlePosXForLeft = 0;
-                paddle.getRectF().left = 0;
-            }
-            else if(paddlePosXForRight >= screenX){
-                paddlePosXForRight = screenX;
-                paddle.getRectF().right = screenX;
-            }
-        }
 
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-        }
     }
 }
