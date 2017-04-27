@@ -16,12 +16,15 @@ public class Paddle {
     private float bottom;
     private float centerX;
     private float centerY;
+    private int movestate;
 
     public final int LEFT_BOUNCE = 0;
     public final int RIGHT_BOUNCE = 1;
     public final int STOPPED = 2;
 
-    private int movingstate = STOPPED;
+    public final int MOVE_STOP = 0;
+    public final int MOVE_LEFT = 1;
+    public final int MOVE_RIGHT = 2;
 
     /// <summary>
     ///
@@ -38,6 +41,9 @@ public class Paddle {
         centerX = right - width / 2;
         centerY = bottom - height / 2;
         rectF = new RectF(left, top, right, bottom);
+        //定义paddle移动方向
+
+
     }
 
     public RectF getRectF(){
@@ -59,5 +65,9 @@ public class Paddle {
         }
     }
 
-    public void update(long dps){}
+    public void update(long dps){
+        if(this.movestate == MOVE_LEFT){
+            
+        }
+    }
 }

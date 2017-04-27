@@ -2,11 +2,16 @@ package com.example.txn160730.breakoutgame;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -27,7 +32,7 @@ public class BreakoutGameActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(new BreakoutGameView(this));
     }
-    class BreakoutGameView extends SurfaceView implements Runnable, SurfaceHolder.Callback{
+    class BreakoutGameView extends SurfaceView implements Runnable, SurfaceHolder.Callback, SensorEventListener{
         Thread thread;
         boolean paused = false;
         volatile boolean isPlaying = true;
@@ -38,11 +43,19 @@ public class BreakoutGameActivity extends Activity {
         Paddle paddle;
         Ball ball;
         Bricks[] bricks = new Bricks[24];
+        private SensorManager sensorMgr = null;
+        Sensor sensor = null;
         //List<Bricks> bricks = new ArrayList<Bricks>();
         long timeThisFrame;
         int numBricks = 0;
         int brickWidth;
         int brickHeight;
+        private float paddlePosXForLeft;
+        private float paddlePosXForRight;
+        private float paddlePosY;
+        private float sensorAxisX;
+        private float sensorAxisY;
+        private float sensorAxisZ;
 //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
@@ -60,6 +73,11 @@ public class BreakoutGameActivity extends Activity {
             brickHeight = screenY / 10;
             paddle = new Paddle(screenX, screenY);
             ball = new Ball(screenX, screenY);
+            sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
+            sensor = sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            sensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+            paddlePosXForLeft = paddle.getRectF().left;
+            paddlePosXForRight = paddle.getRectF().right;
 //            paddleMiddle = (paddle.getRectF().left + paddle.getRectF().right) / 2;
 //            ballMiddle = ball.getcx();
 
@@ -106,17 +124,24 @@ public class BreakoutGameActivity extends Activity {
             if(ball.getcx() >= screenX){
                 ball.reverseSpeedX();
             }
+            //check if the ball hit on the top of the screen
             if(ball.getcy() <= 0){
                 ball.reverseSpeedY();
             }
+            //check if the ball hit on the left side
             if(ball.getcx() <= 0){
                 ball.reverseSpeedX();
             }
+            //check if the ball hit on the bottom of the screen
             if(ball.getcy() >= screenY){
                 ball.reverseSpeedY();
+                Intent intent = new Intent();
+
             }
 
         }
+
+
 
         public boolean intersect(Ball ball, RectF rectF){
             if(rectF.top - ball.getcy() == ball.getRadius()) return true;
@@ -208,5 +233,29 @@ public class BreakoutGameActivity extends Activity {
             return true;
         }
 
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            //更新重力加速度传感器坐标
+            sensorAxisX = event.values[SensorManager.AXIS_X];
+            sensorAxisY = event.values[SensorManager.AXIS_Y];
+            sensorAxisZ = event.values[SensorManager.AXIS_Z];
+            //每次移动迫使paddle移动 注意：paddle只能水平移动
+            paddlePosXForLeft += sensorAxisX*2;
+            paddlePosXForRight += sensorAxisX*2;
+            //检测paddle有没有越界，先是左边界，然后是右边界
+            if(paddlePosXForLeft <= 0) {
+                paddlePosXForLeft = 0;
+                paddle.getRectF().left = 0;
+            }
+            else if(paddlePosXForRight >= screenX){
+                paddlePosXForRight = screenX;
+                paddle.getRectF().right = screenX;
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+        }
     }
 }
