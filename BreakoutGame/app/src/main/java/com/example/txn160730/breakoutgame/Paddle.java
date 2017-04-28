@@ -3,7 +3,7 @@ package com.example.txn160730.breakoutgame;
 import android.graphics.RectF;
 
 /**
- * Created by txn160730 on 4/23/2017.
+ *  Created by fxz160630 on 4/23/2017.
  */
 
 public class Paddle {
@@ -66,7 +66,7 @@ public class Paddle {
 
         }
     }
-
+    //Created by fxz160630
     public void update(long dps){
         if(this.moveState == MOVE_LEFT){
             x = x - movingSpeed/dps;
@@ -77,6 +77,7 @@ public class Paddle {
         rectF.left = x;
         rectF.right = x + this.width;
     }
+    //Created by fxz160630
     public float getX(){
         return this.x;
     }
@@ -89,4 +90,8 @@ public class Paddle {
     public float getWidth(){
         return width;
     }
+    public void setHeight(float height){
+        this.height = height;
+    }
+
 }

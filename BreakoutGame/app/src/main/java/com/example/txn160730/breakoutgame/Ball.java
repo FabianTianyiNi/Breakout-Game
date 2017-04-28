@@ -5,7 +5,7 @@ import android.graphics.RectF;
 import java.util.Random;
 
 /**
- * Created by txn160730 on 4/23/2017.
+ * Created by fxz160630 on 4/23/2017.
  */
 
 public class Ball {
@@ -20,7 +20,7 @@ public class Ball {
     private float xVelocity;
     private float x, y;
     private int radius = 10;
-
+// Created by fxz160630
     public Ball(float screenX, float screenY){
         this.left = (screenX-ballWidth)/2;
         this.top = screenY - 20 - ballHeight;
@@ -33,10 +33,10 @@ public class Ball {
         this.y = (bottom + top) / 2;
 
     }
-//    public RectF getRectF(){
-//        return this.rectF;
-//    }
-
+    public RectF getRectF(){
+        return this.rectF;
+    }
+    // Created by fxz160630
     public void reverseSpeedX(){
         xVelocity = -xVelocity;
     }

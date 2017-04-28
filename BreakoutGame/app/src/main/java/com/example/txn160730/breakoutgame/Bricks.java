@@ -3,7 +3,7 @@ package com.example.txn160730.breakoutgame;
 import android.graphics.RectF;
 
 /**
- * Created by txn160730 on 4/23/2017.
+ *  Created by fxz160630 on 4/23/2017.
  */
 
 public class Bricks {

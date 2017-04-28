@@ -1,7 +1,10 @@
 package com.example.txn160730.breakoutgame;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,10 +22,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// Created by txn160730
 public class BreakoutGameActivity extends Activity {
     SurfaceView surfaceView;
     @Override
@@ -30,8 +35,11 @@ public class BreakoutGameActivity extends Activity {
         super.onCreate(savedInstanceState);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
         setContentView(new BreakoutGameView(this));
     }
+    // Created by txn160730
     class BreakoutGameView extends SurfaceView implements Runnable, SurfaceHolder.Callback {
         Thread thread;
         boolean paused = true;
@@ -56,12 +64,15 @@ public class BreakoutGameActivity extends Activity {
         private float sensorAxisX;
         private float sensorAxisY;
         private float sensorAxisZ;
+        AlertDialog.Builder builder;
         //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
 
+        // Created by txn160730
         public BreakoutGameView(Context context) {
             super(context);
+            builder=new AlertDialog.Builder(context);
             surfaceHolder = getHolder();
             surfaceHolder.addCallback(this);
             paint = new Paint();
@@ -84,12 +95,13 @@ public class BreakoutGameActivity extends Activity {
             createSurfaceAndRestart(); //game start
 
         }
-
+        // Created by txn160730
         public void createSurfaceAndRestart() {
+            sensorMgr.registerListener(lsn, sensor, SensorManager.SENSOR_DELAY_GAME);
             //ball reset
             ball.reset(screenX, screenY);
             //paddle reset
-            //paddle.reset(screenX, screenY);
+            paddle.reset(screenX, screenY);
             //set up the bricks
             numBricks = 0;
             for (int column = 0; column < 8; column++) {
@@ -101,9 +113,9 @@ public class BreakoutGameActivity extends Activity {
             }
             //live and score reset
         }
-
+        // Created by txn160730
         public void update() {
-            sensorMgr.registerListener(lsn, sensor, SensorManager.SENSOR_DELAY_GAME);
+
             //update the ball status
             ball.update(fps);
             paddle.update(fps);
@@ -118,7 +130,7 @@ public class BreakoutGameActivity extends Activity {
                 }
             }
             //check if the ball collide with the paddle
-            if (paddle.getRectF().intersect(ball.getcx() - ball.getRadius(), ball.getcy() - ball.getRadius(),
+            if (intersect(paddle.getRectF(),ball.getcx() - ball.getRadius(), ball.getcy() - ball.getRadius(),
                     ball.getcx() + ball.getRadius(), ball.getcy() + ball.getRadius())) {
                 ball.setxVelocity();
                 ball.reverseSpeedY();
@@ -139,22 +151,14 @@ public class BreakoutGameActivity extends Activity {
             }
             //check if the ball hit on the bottom of the screen
             if (ball.getcy() >= screenY) {
-                ball.clearObstacleY(screenY - 2);
-                //Intent intent = new Intent();
-
+                //dialog();
+                pause();
             }
-
         }
 
 
-        public boolean intersect(Ball ball, RectF rectF) {
-            if (rectF.top - ball.getcy() == ball.getRadius()) return true;
-            else if (ball.getcy() - rectF.bottom == ball.getRadius()) return true;
-            else if (rectF.left - ball.getcx() == ball.getRadius()) return true;
-            else if (ball.getcx() - rectF.right == ball.getRadius()) return true;
-            return false;
-        }
 
+        // Created by txn160730
         @Override
         public void surfaceCreated(SurfaceHolder surfaceHolder) {
             thread = new Thread(this);
@@ -256,12 +260,12 @@ public class BreakoutGameActivity extends Activity {
 
             }
         };
-
+        // Created by txn160730
         @Override
         public boolean onTouchEvent(MotionEvent motionEvent){
             switch(motionEvent.getAction() & MotionEvent.ACTION_MASK){
                 case MotionEvent.ACTION_DOWN:
-                    createSurfaceAndRestart();
+
                     break;
                 case MotionEvent.ACTION_UP:
                     paused = false;
@@ -269,6 +273,40 @@ public class BreakoutGameActivity extends Activity {
             }
             return true;
         }
+
+        public boolean intersect(RectF rectF, float left, float top, float right, float bottom) {
+            if (rectF.left < right && left < rectF.right
+                    && rectF.top < bottom && top < rectF.bottom) {
+                if (rectF.left < left) {
+                    //this.left = left;
+                }
+                if (rectF.top < top) {
+                    //this.top = top;
+                }
+                if (rectF.right > right) {
+                    //this.right = right;
+                }
+                if (rectF.bottom > bottom) {
+                    //this.bottom = bottom;
+                }
+                return true;
+            }
+            return false;
+        }
+//        private void dialog(){
+//              //先得到构造器
+//            builder.setTitle("GAME OVER"); //设置标题
+//            builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() { //设置确定按钮
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss(); //关闭dialog
+//                    Toast.makeText(BreakoutGameActivity.this, "YES" + which, Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//
+//            //参数都设置完成了，创建并显示出来
+//            builder.create().show();
+//        }
 
 
     }
