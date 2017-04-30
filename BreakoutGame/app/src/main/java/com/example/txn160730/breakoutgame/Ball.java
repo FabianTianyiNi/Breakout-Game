@@ -20,6 +20,7 @@ public class Ball {
     private float xVelocity;
     private float x, y;
     private int radius = 10;
+    public int life;
 // Created by fxz160630
     public Ball(float screenX, float screenY){
         this.left = (screenX-ballWidth)/2;
@@ -82,4 +83,5 @@ public class Ball {
         rectF.left = x;
         rectF.right = x + ballWidth;
     }
+
 }

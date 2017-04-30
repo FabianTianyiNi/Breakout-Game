@@ -22,6 +22,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -65,13 +66,17 @@ public class BreakoutGameActivity extends Activity {
         private float sensorAxisY;
         private float sensorAxisZ;
         AlertDialog.Builder builder;
+        private Context mContext;
         //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
+        int life = 3;
+        int mark = 0;
 
         // Created by txn160730
         public BreakoutGameView(Context context) {
             super(context);
+            mContext = BreakoutGameActivity.this;
             builder=new AlertDialog.Builder(context);
             surfaceHolder = getHolder();
             surfaceHolder.addCallback(this);
@@ -126,6 +131,7 @@ public class BreakoutGameActivity extends Activity {
                             ball.getcx() + ball.getRadius(), ball.getcy() + ball.getRadius())) {
                         bricks[i].setVisibility();
                         ball.reverseSpeedY();
+                        mark++;
                     }
                 }
             }
@@ -152,7 +158,13 @@ public class BreakoutGameActivity extends Activity {
             //check if the ball hit on the bottom of the screen
             if (ball.getcy() >= screenY) {
                 //dialog();
-                pause();
+                if(life > 0){
+                    life --;
+                    ball.reverseSpeedY();
+                }
+                else{
+                    //game over
+                }
             }
         }
 
@@ -216,12 +228,20 @@ public class BreakoutGameActivity extends Activity {
                 canvas.drawRect(paddle.getRectF(), paint);
                 //canvas.drawRect(ball.getRectF(), paint);
                 canvas.drawCircle(ball.getcx(), ball.getcy(), 10, paint);
+                // 画方框
                 paint.setColor(Color.argb(255, 255, 106, 106));
                 for (int i = 0; i < numBricks; i++) {
                     if (bricks[i].getVisibility()) {
                         canvas.drawRect(bricks[i].getRectF(), paint);
                     }
                 }
+                // 画积分框
+                paint.setColor(Color.WHITE);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setTextAlign(Paint.Align.CENTER);
+                paint.setTextSize(60);
+                canvas.drawText("LIFE: " + life, 100, 80, paint);
+                canvas.drawText("SCORE: " + mark, 400, 80, paint);
                 surfaceHolder.unlockCanvasAndPost(canvas);
             }
         }
@@ -293,6 +313,13 @@ public class BreakoutGameActivity extends Activity {
             }
             return false;
         }
+        //game over appear
+        public void gameoverPicsLoading(){
+            ImageView imgView = new ImageView(mContext);
+
+
+        }
+
 //        private void dialog(){
 //              //先得到构造器
 //            builder.setTitle("GAME OVER"); //设置标题
