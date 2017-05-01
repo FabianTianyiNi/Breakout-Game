@@ -19,9 +19,6 @@ public class Paddle {
     private int moveState;
     private float movingSpeed;
 
-    public final int LEFT_BOUNCE = 0;
-    public final int RIGHT_BOUNCE = 1;
-    public final int STOPPED = 2;
 
     //定义paddle移动方向
     public final int MOVE_STOP = 0;
@@ -51,21 +48,17 @@ public class Paddle {
     }
     public void reset(float screenX, float screenY){
         this.height = 20;
-        rectF.left = (screenX - width)/2;
-        rectF.top = screenY - height;
-        rectF.right = left + width;
-        rectF.bottom = screenY;
+        this.left = (screenX - width)/2;
+        this.top = screenY - height;
+        this.right = left + width;
+        this.bottom = screenY;
 //        rectF = new RectF(left, top, right, bottom);
     }
     public void setPaddleMovementState(int state){
         moveState = state;
     }
 
-    public void updateAndStartToBounce(long dps){
-        if(moveState == LEFT_BOUNCE){
 
-        }
-    }
     //Created by fxz160630
     public void update(long dps){
         if(this.moveState == MOVE_LEFT){

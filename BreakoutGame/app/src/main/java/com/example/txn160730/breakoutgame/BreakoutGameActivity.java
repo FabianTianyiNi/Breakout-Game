@@ -2,7 +2,6 @@ package com.example.txn160730.breakoutgame;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,6 +15,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.Handler;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -23,14 +24,15 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.app.AlertDialog.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.RunnableFuture;
+import java.util.logging.LogRecord;
 
 // Created by txn160730
 public class BreakoutGameActivity extends Activity {
-    SurfaceView surfaceView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,19 +67,19 @@ public class BreakoutGameActivity extends Activity {
         private float sensorAxisX;
         private float sensorAxisY;
         private float sensorAxisZ;
-        AlertDialog.Builder builder;
+        AlertDialog.Builder gameoverBuilder;
         private Context mContext;
+        private Handler handler;
         //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
-        int life = 3;
+        int life = 1;
         int mark = 0;
 
         // Created by txn160730
         public BreakoutGameView(Context context) {
             super(context);
-            mContext = BreakoutGameActivity.this;
-            builder=new AlertDialog.Builder(context);
+            mContext = context;
             surfaceHolder = getHolder();
             surfaceHolder.addCallback(this);
             paint = new Paint();
@@ -94,6 +96,7 @@ public class BreakoutGameActivity extends Activity {
             sensor = sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             paddlePosXForLeft = paddle.getRectF().left;
             paddlePosXForRight = paddle.getRectF().right;
+
 //            paddleMiddle = (paddle.getRectF().left + paddle.getRectF().right) / 2;
 //            ballMiddle = ball.getcx();
 
@@ -162,9 +165,12 @@ public class BreakoutGameActivity extends Activity {
                     life --;
                     ball.reverseSpeedY();
                 }
-                else{
-                    //game over
+                else if(life == 0){
+                    Intent intent = new Intent();
+                    intent.setClass(BreakoutGameActivity.this, GameOverActivity.class);
+                    BreakoutGameActivity.this.startActivity(intent);
                 }
+
             }
         }
 
@@ -315,8 +321,30 @@ public class BreakoutGameActivity extends Activity {
         }
         //game over appear
         public void gameoverPicsLoading(){
-            ImageView imgView = new ImageView(mContext);
+            //ImageView imgView = new ImageView(mContext);
+            gameoverBuilder = new Builder(mContext);
+            gameoverBuilder.setCancelable(true);
+            gameoverBuilder.setTitle("GAME OVER!");
+            gameoverBuilder.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //返回gamestartactivity
+                    dialog.cancel();
 
+
+                }
+            });
+            gameoverBuilder.setPositiveButton("RESTART", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //游戏重新开始，关闭dialog，life复原，积分清零
+                    dialog.dismiss();
+                    createSurfaceAndRestart();
+
+                }
+            });
+            //gameoverBuilder.setCancelable(false);
+            gameoverBuilder.create().show();
 
         }
 

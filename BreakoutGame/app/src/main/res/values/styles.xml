@@ -8,4 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
+    <style name="dialog_style" parent="Theme.AppCompat.Dialog">
+
+        <!--是否悬浮在activity上-->
+        <item name="android:windowIsFloating">true</item>
+        <!--透明是否-->
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:background">#82858b</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 </resources>
