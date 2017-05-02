@@ -2,6 +2,7 @@ package com.example.txn160730.breakoutgame;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Handler;
+import android.os.Message;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -56,25 +58,27 @@ public class BreakoutGameActivity extends Activity {
         Bricks[] bricks = new Bricks[24];
         private SensorManager sensorMgr = null;
         Sensor sensor = null;
-        //List<Bricks> bricks = new ArrayList<Bricks>();
         long timeThisFrame;
         int numBricks = 0;
         int brickWidth;
         int brickHeight;
-        private float paddlePosXForLeft;
-        private float paddlePosXForRight;
-        private float paddlePosY;
-        private float sensorAxisX;
-        private float sensorAxisY;
-        private float sensorAxisZ;
+        public float paddlePosXForLeft;
+        public float paddlePosXForRight;
+        public float paddlePosY;
+        public float sensorAxisX;
+        public float sensorAxisY;
+        public Handler dialogHandler;
         AlertDialog.Builder gameoverBuilder;
         private Context mContext;
-        private Handler handler;
+        int tmpnum = 0;
+
         //        float paddleMiddle;
 //        float ballMiddle;
         long fps;
-        int life = 1;
+        int life = 3;
         int mark = 0;
+        int currenttime = (int) System.currentTimeMillis();
+        int finishtime = 0;
 
         // Created by txn160730
         public BreakoutGameView(Context context) {
@@ -96,11 +100,8 @@ public class BreakoutGameActivity extends Activity {
             sensor = sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             paddlePosXForLeft = paddle.getRectF().left;
             paddlePosXForRight = paddle.getRectF().right;
-
 //            paddleMiddle = (paddle.getRectF().left + paddle.getRectF().right) / 2;
 //            ballMiddle = ball.getcx();
-
-            createSurfaceAndRestart(); //game start
 
         }
         // Created by txn160730
@@ -135,6 +136,7 @@ public class BreakoutGameActivity extends Activity {
                         bricks[i].setVisibility();
                         ball.reverseSpeedY();
                         mark++;
+                        //tmpnum++;
                     }
                 }
             }
@@ -166,12 +168,14 @@ public class BreakoutGameActivity extends Activity {
                     ball.reverseSpeedY();
                 }
                 else if(life == 0){
-                    Intent intent = new Intent();
-                    intent.setClass(BreakoutGameActivity.this, GameOverActivity.class);
-                    BreakoutGameActivity.this.startActivity(intent);
+
+                    createSurfaceAndRestart();
+                    mark = 0;
+                    life = 3;
                 }
 
             }
+
         }
 
 
@@ -196,6 +200,8 @@ public class BreakoutGameActivity extends Activity {
 
         @Override
         public void run() {
+            createSurfaceAndRestart();
+
             while (isPlaying) {
                 long startFrameTime = System.currentTimeMillis();
                 draw();
@@ -208,6 +214,14 @@ public class BreakoutGameActivity extends Activity {
 
                 }
             }
+//            dialogHandler = new Handler(mContext.getMainLooper()) {
+//                @Override
+//                public void handleMessage(Message msg) {
+//                    super.handleMessage(msg);
+//                    gameoverPicsLoading();
+//                }
+//
+//            };
         }
         public void pause() {
             isPlaying = false;
@@ -241,6 +255,22 @@ public class BreakoutGameActivity extends Activity {
                         canvas.drawRect(bricks[i].getRectF(), paint);
                     }
                 }
+//                for (int row = 0; row < 3; row++) {
+//                    for (int column = 0; column < 8; column++) {
+//                        if(row == 0){
+//                            paint.setColor(Color.WHITE);
+//                            canvas.drawRect(bricks[column].getRectF(), paint);
+//                        }
+//                        if(row == 1){
+//                            paint.setColor(Color.RED);
+//                            canvas.drawRect(bricks[column].getRectF(), paint);
+//                        }
+//                        if(row == 2){
+//                            paint.setColor(Color.LTGRAY);
+//                            canvas.drawRect(bricks[column].getRectF(), paint);
+//                        }
+//                    }
+//                }
                 // 画积分框
                 paint.setColor(Color.WHITE);
                 paint.setStyle(Paint.Style.FILL);
@@ -320,49 +350,58 @@ public class BreakoutGameActivity extends Activity {
             return false;
         }
         //game over appear
-        public void gameoverPicsLoading(){
-            //ImageView imgView = new ImageView(mContext);
-            gameoverBuilder = new Builder(mContext);
-            gameoverBuilder.setCancelable(true);
-            gameoverBuilder.setTitle("GAME OVER!");
-            gameoverBuilder.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    //返回gamestartactivity
-                    dialog.cancel();
-
-
-                }
-            });
-            gameoverBuilder.setPositiveButton("RESTART", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    //游戏重新开始，关闭dialog，life复原，积分清零
-                    dialog.dismiss();
-                    createSurfaceAndRestart();
-
-                }
-            });
-            //gameoverBuilder.setCancelable(false);
-            gameoverBuilder.create().show();
-
-        }
-
-//        private void dialog(){
-//              //先得到构造器
-//            builder.setTitle("GAME OVER"); //设置标题
-//            builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() { //设置确定按钮
+//        public void gameoverPicsLoading(){
+//            //ImageView imgView = new ImageView(mContext);
+//            gameoverBuilder = new Builder(mContext);
+//            gameoverBuilder.setCancelable(true);
+//            gameoverBuilder.setTitle("GAME OVER!");
+//            gameoverBuilder.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
 //                @Override
 //                public void onClick(DialogInterface dialog, int which) {
-//                    dialog.dismiss(); //关闭dialog
-//                    Toast.makeText(BreakoutGameActivity.this, "YES" + which, Toast.LENGTH_SHORT).show();
+//                    //返回gamestartactivity
+//                    dialog.cancel();
+//
+//
 //                }
 //            });
+//            gameoverBuilder.setPositiveButton("RESTART", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    //游戏重新开始，关闭dialog，life复原，积分清零
+//                    dialog.dismiss();
+//                    createSurfaceAndRestart();
 //
-//            //参数都设置完成了，创建并显示出来
-//            builder.create().show();
+//                }
+//            });
+//            //gameoverBuilder.setCancelable(false);
+//            gameoverBuilder.create().show();
+//
 //        }
 
+//        private void gameOverDialog(){
+////先new出一个监听器，设置好监听
+//DialogInterface.OnClickListener dialogOnclicListener=new DialogInterface.OnClickListener(){
+//
+//    @Override
+//    public void onClick(DialogInterface dialog, int which) {
+//        switch(which){
+//            case Dialog.BUTTON_POSITIVE:
+//                //TODO 你自己的业务逻辑
+//                break;
+//            case Dialog.BUTTON_NEGATIVE:
+//                //TODO 你自己的业务逻辑
+//                break;
+//        }
+//    }
+//};
+//        //dialog参数设置
+//        gameoverBuilder = new Builder(mContext);  //先得到构造器
+//       gameoverBuilder.setTitle("提示"); //设置标题
+//       gameoverBuilder.setMessage("GAME OVER"); //设置内容
+//       gameoverBuilder.setPositiveButton("restart",dialogOnclicListener);
+//       gameoverBuilder.setNegativeButton("cancel", dialogOnclicListener);
+//       gameoverBuilder.create().show();
+//    }
 
-    }
+   }
 }
